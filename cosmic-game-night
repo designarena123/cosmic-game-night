@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0d0b18">
+  <title>Cosmic Game Night PWA</title>
+  <style>
+    :root {
+      --bg-dark: #0d0b18;
+      --card-bg: #18142b;
+      --card-border: #2e264f;
+      --accent-purple: #9d4edd;
+      --accent-gold: #ffc600;
+      --accent-pink: #f72585;
+      --text-main: #f1f0f7;
+      --text-muted: #a099c2;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 20px;
+    }
+
+    header {
+      background: rgba(24, 20, 43, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-btn {
+      background: #251d42;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .nav-btn:active {
+      transform: scale(0.96);
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px 16px;
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* Home View Styling */
+    .hero {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      color: var(--accent-gold);
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .tool-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tool-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      transition: border-color 0.2s;
+    }
+
+    .tool-card:active {
+      border-color: var(--accent-purple);
+      background: #1f1a38;
+    }
+
+    .tool-icon {
+      font-size: 32px;
+      width: 50px;
+      height: 50px;
+      background: rgba(157, 78, 221, 0.15);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tool-info h3 {
+      font-size: 17px;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .tool-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Common Components */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent-purple), #7b2cbf);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+      touch-action: manipulation;
+      margin-top: 12px;
+    }
+
+    .btn:active {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      background: #120e24;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 16px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent-purple);
+    }
+
+    .card-display {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      margin: 16px 0;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Tool 2 Flip Card */
+    .flip-card {
+      perspective: 1000px;
+      width: 100%;
+      min-height: 240px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .flip-card-back {
+      transform: rotateY(180deg);
+      border-color: var(--accent-purple);
+      background: #1f1938;
+    }
+
+    /* Tool 5 Bingo Grid */
+    .bingo-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin: 16px 0;
+    }
+
+    .bingo-cell {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      aspect-ratio: 1;
+      font-size: 11px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .bingo-cell.marked {
+      background: var(--accent-purple);
+      color: white;
+      font-weight: bold;
+      border-color: var(--accent-gold);
+    }
+
+    .bingo-cell.free-space {
+      background: rgba(255, 198, 0, 0.2);
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+      font-weight: bold;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(157, 78, 221, 0.2);
+      border-radius: 12px;
+      font-size: 12px;
+      color: var(--accent-purple);
+      margin-bottom: 8px;
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      background: #120e24;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    @media print {
+      header, .btn, select, .nav-btn { display: none !important; }
+      body { background: white; color: black; }
+      .card-display { border: 1px solid #ccc; color: black; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <button class="nav-btn" id="backBtn" onclick="showView('homeView')" style="visibility: hidden;">
+      ← Home
+    </button>
+    <div class="app-title">✨ Cosmic Game Night</div>
+    <div style="width: 60px;"></div>
+  </header>
+
+  <main>
+    <!-- HOME VIEW -->
+    <section id="homeView" class="view active">
+      <div class="hero">
+        <h1>Astrology Party Suite</h1>
+        <p>Choose a game below to kick off your cosmic session!</p>
+      </div>
+      <div class="tool-grid">
+        <div class="tool-card" onclick="showView('tool1View')">
+          <div class="tool-icon">⚖️</div>
+          <div class="tool-info">
+            <h3>Would You Rather</h3>
+            <p>Zodiac-themed dilemmas tailored to specific signs.</p>
+          </div>
+        </div>
+
+        <div class="tool-card" onclick="showView('tool2View')">
+          <div class="tool-icon">🃏</div>
+          <div class="tool-info">
+            <h3>Astrology Trivia Deck</h3>
+            <p>Flip cards to test cosmic knowledge on houses, rulers & traits.</p>
+          </div>
+        </div>
+
+        <div class="tool-card" onclick="showView('tool3View')">
+          <div class="tool-icon">🔮</div>
+          <div class="tool-info">
+            <h3>Guess My Sign</h3>
+            <p>Party game: Host lists traits, guests guess the sign.</p>
+          </div>
+        </div>
+
+        <div class="tool-card" onclick="showView('tool4View')">
+          <div class="tool-icon">🏆</div>
+          <div class="tool-info">
+            <h3>Sign Superlatives</h3>
+            <p>Generate fun "Most Likely To..." awards by sign.</p>
+          </div>
+        </div>
+
+        <div class="tool-card" onclick="showView('tool5View')">
+          <div class="tool-icon">🎯</div>
+          <div class="tool-info">
+            <h3>Personality Bingo</h3>
+            <p>Interactive bingo board filled with zodiac traits to spot.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOL 1: WOULD YOU RATHER -->
+    <section id="tool1View" class="view">
+      <h2>Would You Rather?</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Select a sign to generate cosmic dilemmas.</p>
+      
+      <select id="t1SignSelect" onchange="generateT1Dilemma()">
+        <option value="Aries">Aries ♈</option>
+        <option value="Taurus">Taurus ♉</option>
+        <option value="Gemini">Gemini ♊</option>
+        <option value="Cancer">Cancer ♋</option>
+        <option value="Leo">Leo ♌</option>
+        <option value="Virgo">Virgo ♍</option>
+        <option value="Libra">Libra ♎</option>
+        <option value="Scorpio">Scorpio ♏</option>
+        <option value="Sagittarius">Sagittarius ♐</option>
+        <option value="Capricorn">Capricorn ♑</option>
+        <option value="Aquarius">Aquarius ♒</option>
+        <option value="Pisces">Pisces ♓</option>
+      </select>
+
+      <div class="card-display">
+        <span class="badge" id="t1Badge">Aries Choice</span>
+        <p id="t1OptionA" style="font-weight: 600; font-size: 18px; margin-bottom: 12px; color: var(--accent-gold);"></p>
+        <div style="font-size: 12px; color: var(--text-muted); margin: 8px 0;">— OR —</div>
+        <p id="t1OptionB" style="font-weight: 600; font-size: 18px; color: var(--accent-purple);"></p>
+      </div>
+
+      <button class="btn" onclick="generateT1Dilemma()">Next Dilemma</button>
+    </section>
+
+    <!-- TOOL 2: TRIVIA DECK -->
+    <section id="tool2View" class="view">
+      <h2>Zodiac Trivia Deck</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Tap card to reveal the answer.</p>
+
+      <div class="flip-card" id="triviaCard" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-card-front">
+            <span class="badge">Question</span>
+            <p id="t2Question" style="font-size: 18px; font-weight: 600;"></p>
+          </div>
+          <div class="flip-card-back">
+            <span class="badge" style="background: rgba(255,198,0,0.2); color: var(--accent-gold);">Answer</span>
+            <p id="t2Answer" style="font-size: 18px; font-weight: 600; color: var(--accent-gold);"></p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="nextTriviaCard()">Next Card</button>
+    </section>
+
+    <!-- TOOL 3: GUESS MY SIGN GAME -->
+    <section id="tool3View" class="view">
+      <h2>Guess My Sign Game</h2>
+      
+      <div class="score-board">
+        <span>Score: <span id="t3Score">0</span></span>
+        <span style="cursor: pointer; color: var(--accent-pink); font-size: 12px;" onclick="resetT3Score()">Reset Score</span>
+      </div>
+
+      <div class="card-display">
+        <span class="badge">Which Sign Am I?</span>
+        <div id="t3Traits" style="text-align: left; font-size: 15px; margin: 12px 0;"></div>
+      </div>
+
+      <select id="t3GuessSelect">
+        <option value="" disabled selected>Select your guess...</option>
+        <option value="Aries">Aries</option>
+        <option value="Taurus">Taurus</option>
+        <option value="Gemini">Gemini</option>
+        <option value="Cancer">Cancer</option>
+        <option value="Leo">Leo</option>
+        <option value="Virgo">Virgo</option>
+        <option value="Libra">Libra</option>
+        <option value="Scorpio">Scorpio</option>
+        <option value="Sagittarius">Sagittarius</option>
+        <option value="Capricorn">Capricorn</option>
+        <option value="Aquarius">Aquarius</option>
+        <option value="Pisces">Pisces</option>
+      </select>
+
+      <button class="btn" onclick="submitT3Guess()">Submit Guess</button>
+      <p id="t3Feedback" style="text-align: center; margin-top: 12px; font-weight: bold; min-height: 24px;"></p>
+    </section>
+
+    <!-- TOOL 4: SIGN SUPERLATIVES -->
+    <section id="tool4View" class="view">
+      <h2>Sign Superlatives Generator</h2>
+      
+      <select id="t4SignSelect" onchange="generateT4Superlative()">
+        <option value="Aries">Aries ♈</option>
+        <option value="Taurus">Taurus ♉</option>
+        <option value="Gemini">Gemini ♊</option>
+        <option value="Cancer">Cancer ♋</option>
+        <option value="Leo">Leo ♌</option>
+        <option value="Virgo">Virgo ♍</option>
+        <option value="Libra">Libra ♎</option>
+        <option value="Scorpio">Scorpio ♏</option>
+        <option value="Sagittarius">Sagittarius ♐</option>
+        <option value="Capricorn">Capricorn ♑</option>
+        <option value="Aquarius">Aquarius ♒</option>
+        <option value="Pisces">Pisces ♓</option>
+      </select>
+
+      <div class="card-display" id="t4PrintArea">
+        <span class="badge">Official Cosmic Award</span>
+        <h3 id="t4AwardSign" style="color: var(--accent-gold); margin-bottom: 8px;">Aries</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">IS MOST LIKELY TO...</p>
+        <p id="t4SuperlativeText" style="font-size: 18px; font-weight: 600;"></p>
+      </div>
+
+      <button class="btn" onclick="generateT4Superlative()">Generate New Award</button>
+      <button class="btn btn-secondary" onclick="window.print()">Print / Save Award</button>
+    </section>
+
+    <!-- TOOL 5: BINGO CARD BUILDER -->
+    <section id="tool5View" class="view">
+      <h2>Personality Bingo</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">Tap traits as you spot them in your party guests!</p>
+
+      <div class="bingo-grid" id="bingoGrid"></div>
+
+      <button class="btn btn-secondary" onclick="resetT5Bingo()">Reset Board</button>
+    </section>
+  </main>
+
+  <script>
+    // --- NAVIGATION LOGIC ---
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      document.getElementById('backBtn').style.visibility = (viewId === 'homeView') ? 'hidden' : 'visible';
+      window.scrollTo(0, 0);
+    }
+
+    // --- TOOL 1 DATA & LOGIC ---
+    const t1Data = {
+      Aries: [
+        ["Start a spontaneous road trip right now", "Challenge the host to an arm wrestle"],
+        ["Lead the group in karaoke", "Interrupt someone to make a point"],
+        ["Win a competitive board game", "Impulse buy a luxury item"]
+      ],
+      Taurus: [
+        ["Cancel plans to eat high-end takeout in bed", "Refuse to move from the best spot on the couch"],
+        ["Spend $50 on a luxury candle", "Defend an opinion stubborn to the end"],
+        ["Host a gourmet 5-course dinner", "Take a 3-hour nap on a busy afternoon"]
+      ],
+      Gemini: [
+        ["Start two podcasts at the same time", "Accidentally reveal a secret because of excitement"],
+        ["Text in 5 group chats simultaneously", "Change your outfit 4 times before leaving"],
+        ["Learn a random new skill on YouTube at 2 AM", "Talk to a complete stranger for an hour"]
+      ],
+      Cancer: [
+        ["Keep a sentimental movie ticket from 2012", "Host a cozy comfort-food night"],
+        ["Cry during a wholesome commercial", "Nurture all your friends when they are stressed"],
+        ["Reorganize photo albums nostalgically", "Create a protective cozy space at home"]
+      ],
+      Leo: [
+        ["Overdress for a casual gathering", "Perform a dramatic monologue during a speech"],
+        ["Post a selfie and check likes every 2 minutes", "Buy everyone a round of drinks for the spotlight"],
+        ["Take total charge of the group event", "Give an inspiring motivational speech"]
+      ],
+      Virgo: [
+        ["Create a color-coded color spreadsheet for vacation", "Critique someone's loading of the dishwasher"],
+        ["Clean the host's kitchen during a party", "Research a purchase for 3 weeks before buying"],
+        ["Fix a typo on a public sign", "Build a detailed daily routine schedule"]
+      ],
+      Libra: [
+        ["Take 20 minutes to choose a menu item", "Buy matching outfits for you and your friend"],
+        ["Play devil's advocate in a casual debate", "Rearrange furniture to fix the energy"],
+        ["Spend an hour picking the perfect party playlist", "Agree with both sides of an argument"]
+      ],
+      Scorpio: [
+        ["Investigate someone's social media history back to 2015", "Keep an intriguing secret all night"],
+        ["Stare intensely until the other person looks away", "Give a deeply transformational life advice"],
+        ["Disappear mysteriously from a party without warning", "Detect a lie instantly"]
+      ],
+      Sagittarius: [
+        ["Book a one-way ticket to a foreign country", "Blurt out an unfiltered truth in public"],
+        ["Turn a quick store trip into a 5-hour adventure", "Start learning a third language for fun"],
+        ["Debate philosophy until sunrise", "Laugh loudly at an inappropriate time"]
+      ],
+      Capricorn: [
+        ["Work on a side business during a party", "Create a 10-year financial goal roadmap"],
+        ["Arrive exactly 5 minutes early", "Politely decline an unproductive activity"],
+        ["Take charge of organizing an entire event", "Give pragmatic, serious advice"]
+      ],
+      Aquarius: [
+        ["Start a debate on unconventional conspiracy theories", "Wear a wildly unique vintage outfit"],
+        ["Advocate for a radical community cause", "ghost a party to spend time alone reading"],
+        ["Invent a new slang word", "Refuse to follow traditional party rules"]
+      ],
+      Pisces: [
+        ["Get lost in daydreaming during a conversation", "Create a playlist based on someone's vibe"],
+        ["Believe in a strange cosmic coincidence", "Write a poem inspired by the current mood"],
+        ["Bring a crystal to the party for good vibes", "Lose track of time completely"]
+      ]
+    };
+
+    function generateT1Dilemma() {
+      const sign = document.getElementById('t1SignSelect').value;
+      const options = t1Data[sign];
+      const randomChoice = options[Math.floor(Math.random() * options.length)];
+      document.getElementById('t1Badge').innerText = sign + " Choice";
+      document.getElementById('t1OptionA').innerText = "1. " + randomChoice[0];
+      document.getElementById('t1OptionB').innerText = "2. " + randomChoice[1];
+    }
+
+    // --- TOOL 2 DATA & LOGIC ---
+    const t2Deck = [
+      { q: "Which element is associated with Leo, Aries, and Sagittarius?", a: "Fire 🔥" },
+      { q: "Which planet rules communication and intellect?", a: "Mercury ☿" },
+      { q: "What is the 1st House in Astrology traditionally associated with?", a: "Self, Appearance, & First Impressions 👤" },
+      { q: "Which sign is represented by the Water Bearer but is actually an Air sign?", a: "Aquarius ♒" },
+      { q: "What planet rules emotions, instincts, and the inner self?", a: "The Moon 🌙" },
+      { q: "Which three signs belong to the Earth element?", a: "Taurus, Virgo, Capricorn 🌍" },
+      { q: "What does your Rising (Ascendant) sign represent?", a: "How you present yourself to the world and others' first impression of you ✨" }
+    ];
+    let t2Index = 0;
+
+    function nextTriviaCard() {
+      document.getElementById('triviaCard').classList.remove('flipped');
+      setTimeout(() => {
+        t2Index = (t2Index + 1) % t2Deck.length;
+        document.getElementById('t2Question').innerText = t2Deck[t2Index].q;
+        document.getElementById('t2Answer').innerText = t2Deck[t2Index].a;
+      }, 200);
+    }
+
+    // --- TOOL 3 DATA & LOGIC ---
+    const t3Data = [
+      { sign: "Aries", traits: ["• Fiercely competitive", "• Impulsive & bold", "• Natural leader", "• Direct communication style"] },
+      { sign: "Taurus", traits: ["• Loves luxury & comfort", "• Deeply loyal", "• Unshakeable patience", "• Highly stubborn when pushed"] },
+      { sign: "Gemini", traits: ["• Super conversational", "• Quickly adaptable", "• Easily bored", "• Multi-tasking master"] },
+      { sign: "Cancer", traits: ["• Deeply intuitive", "• Highly protective", "• Emotional depth", "• Loves home comforts"] },
+      { sign: "Leo", traits: ["• Charismatic & warm", "• Loves recognition", "• Generous heart", "• Dramatic flair"] },
+      { sign: "Virgo", traits: ["• Detail-oriented", "• Practical helper", "• Analytical thinker", "• High standards"] }
+    ];
+    let t3CurrentIndex = 0;
+    let t3Score = parseInt(localStorage.getItem('bundle7_tool3_score') || '0', 10);
+
+    function loadT3Question() {
+      t3CurrentIndex = Math.floor(Math.random() * t3Data.length);
+      const q = t3Data[t3CurrentIndex];
+      document.getElementById('t3Traits').innerHTML = q.traits.map(t => `<p style="margin: 4px 0;">${t}</p>`).join('');
+      document.getElementById('t3Feedback').innerText = '';
+      document.getElementById('t3GuessSelect').value = '';
+      document.getElementById('t3Score').innerText = t3Score;
+    }
+
+    function submitT3Guess() {
+      const selected = document.getElementById('t3GuessSelect').value;
+      const correct = t3Data[t3CurrentIndex].sign;
+      const fb = document.getElementById('t3Feedback');
+      
+      if (!selected) return;
+
+      if (selected === correct) {
+        fb.style.color = "var(--accent-gold)";
+        fb.innerText = "✨ Correct! It was " + correct + "!";
+        t3Score += 10;
+        localStorage.setItem('bundle7_tool3_score', t3Score);
+        document.getElementById('t3Score').innerText = t3Score;
+        setTimeout(loadT3Question, 1500);
+      } else {
+        fb.style.color = "var(--accent-pink)";
+        fb.innerText = "❌ Incorrect! Try again!";
+      }
+    }
+
+    function resetT3Score() {
+      t3Score = 0;
+      localStorage.setItem('bundle7_tool3_score', '0');
+      document.getElementById('t3Score').innerText = '0';
+    }
+
+    // --- TOOL 4 DATA & LOGIC ---
+    const t4Data = {
+      Aries: ["Start an argument for fun", "Win a race they didn't know they were in", "Accidentally break something out of enthusiasm"],
+      Taurus: ["Fall asleep at a concert", "Refuse to share their snacks", "Spend $200 on premium bedding"],
+      Gemini: ["Send a 5-minute voice note", "Know secret gossip about someone they just met", "Change party locations 3 times"],
+      Cancer: ["Host the comforting post-party late-night chat", "Remember everyone's birthday", "Cry over a wholesome video"],
+      Leo: ["Arrive 30 minutes late in the best outfit", "Steal the microphone", "Become best friends with the photographer"],
+      Virgo: ["Bring a first-aid kit and hand sanitizer", "Fix a broken table", "Organize the coat rack"],
+      Libra: ["Take 45 minutes to pick a drink", "Compliment every single person in the room", "Balance the energy when things get tense"],
+      Scorpio: ["Know everyone's secret motive", "Disappear silently into the night", "Give intense eye contact"],
+      Sagittarius: ["Propose an impromptu trip across state lines", "Tell an outrageously funny true story", "Make a new friend in the restroom"],
+      Capricorn: ["Network casually at a relaxed party", "Become the designated sober driver/manager", "Check work emails at midnight"],
+      Aquarius: ["Bring up alien theories mid-conversation", "Wear something completely unique", "Start an impromptu philosophical debate"],
+      Pisces: ["Forget where they parked their shoes", "Create a deep emotional bond with a pet at the party", "Say 'I feel your vibe'"]
+    };
+
+    function generateT4Superlative() {
+      const sign = document.getElementById('t4SignSelect').value;
+      const list = t4Data[sign];
+      const text = list[Math.floor(Math.random() * list.length)];
+      document.getElementById('t4AwardSign').innerText = sign;
+      document.getElementById('t4SuperlativeText').innerText = text;
+    }
+
+    // --- TOOL 5 DATA & LOGIC (PERSISTED) ---
+    const t5Traits = [
+      "Aries energy", "Late arrival", "Best Dressed", "Brought Snacks", "Loud Laugh",
+      "Checking Horoscope", "Deep Debater", "Social Butterfly", "Night Owl", "Comfy Clothes",
+      "Gourmet Taste", "FREE SPACE", "Playlist Master", "Peace Maker", "Secret Keeper",
+      "Always Planning", "Extrovert", "Introvert Cozy", "Crystal Holder", "Over-packer",
+      "Storyteller", "Photo Taker", "Tea Spiller", "Group Organizer", "Advice Giver"
+    ];
+
+    function renderT5Bingo() {
+      const grid = document.getElementById('bingoGrid');
+      grid.innerHTML = '';
+      const savedState = JSON.parse(localStorage.getItem('bundle7_tool5_state') || '{}');
+
+      t5Traits.forEach((trait, idx) => {
+        const cell = document.createElement('div');
+        cell.className = 'bingo-cell';
+        
+        if (idx === 12) { // Center Free Space
+          cell.classList.add('free-space');
+          cell.innerText = "✨ FREE SPACE ✨";
+        } else {
+          cell.innerText = trait;
+          if (savedState[idx]) {
+            cell.classList.add('marked');
+          }
+          cell.onclick = () => toggleT5Cell(idx);
+        }
+        grid.appendChild(cell);
+      });
+    }
+
+    function toggleT5Cell(idx) {
+      const savedState = JSON.parse(localStorage.getItem('bundle7_tool5_state') || '{}');
+      savedState[idx] = !savedState[idx];
+      localStorage.setItem('bundle7_tool5_state', JSON.stringify(savedState));
+      renderT5Bingo();
+    }
+
+    function resetT5Bingo() {
+      if (confirm("Reset your Bingo board?")) {
+        localStorage.removeItem('bundle7_tool5_state');
+        renderT5Bingo();
+      }
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+      generateT1Dilemma();
+      document.getElementById('t2Question').innerText = t2Deck[0].q;
+      document.getElementById('t2Answer').innerText = t2Deck[0].a;
+      loadT3Question();
+      generateT4Superlative();
+      renderT5Bingo();
+    };
+  </script>
+</body>
+</html>
